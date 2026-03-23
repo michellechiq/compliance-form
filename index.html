@@ -905,6 +905,76 @@
 
     document.getElementById('summaryContent').innerHTML = html;
   }
+
+  // ── Prefill from URL ────────────────────────────────────────────────────────
+
+  function loadPrefill() {
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get('prefill');
+    if (!raw) return;
+
+    let data;
+    try {
+      data = JSON.parse(decodeURIComponent(raw));
+    } catch (e) {
+      console.warn('Prefill data could not be parsed.', e);
+      return;
+    }
+
+    // Program Name
+    const programEl = document.getElementById('programSelect');
+    if (data.programName) {
+      [...programEl.options].forEach(o => { if (o.value === data.programName) o.selected = true; });
+    }
+
+    // Director
+    if (data.directorFirstName) document.getElementById('directorFirst').value = data.directorFirstName;
+    if (data.directorLastName) document.getElementById('directorLast').value = data.directorLastName;
+
+    // AVP
+    if (data.avpFirstName) document.getElementById('avpFirst').value = data.avpFirstName;
+    if (data.avpLastName) document.getElementById('avpLast').value = data.avpLastName;
+
+    // Reporting period -- advance quarter by 1
+    const quarterMap = { Q1: 'Q2', Q2: 'Q3', Q3: 'Q4', Q4: 'Q1' };
+    const nextQuarter = quarterMap[data.reportingQuarter] || data.reportingQuarter;
+    const nextYear = data.reportingQuarter === 'Q4' ? String(parseInt(data.reportingYear) + 1) : data.reportingYear;
+    const quarterEl = document.getElementById('reportingQuarter');
+    [...quarterEl.options].forEach(o => { if (o.value === nextQuarter) o.selected = true; });
+    const yearEl = document.getElementById('reportingYear');
+    [...yearEl.options].forEach(o => { if (o.value === nextYear) o.selected = true; });
+
+    // Funding sources
+    if (data.activeFunderCount && data.funders) {
+      const countEl = document.getElementById('fundingCountSelect');
+      const n = data.activeFunderCount;
+      if (n <= 4) {
+        [...countEl.options].forEach(o => { if (o.value === String(n)) o.selected = true; });
+      } else {
+        [...countEl.options].forEach(o => { if (o.value === 'more') o.selected = true; });
+        document.getElementById('moreCountWrap').classList.add('visible');
+        document.getElementById('moreFundingCount').value = n;
+      }
+      updateFundingFields(n);
+
+      data.funders.forEach((funder, idx) => {
+        const i = idx + 1;
+        const nameEl = document.getElementById('fundingSource' + i);
+        const blurbEl = document.getElementById('fundingBlurb' + i);
+        if (nameEl && funder.name) nameEl.value = funder.name;
+        if (blurbEl && funder.description) blurbEl.value = funder.description;
+      });
+    }
+
+    // Show prefill banner
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:#e8f4fd; border:1px solid #b0d4f0; border-radius:4px; padding:10px 16px; font-size:0.85rem; color:#1a5a8a; margin-bottom:20px;';
+    banner.textContent = 'This form has been pre-filled with your last quarter's submission. Review and update as needed before submitting.';
+    document.getElementById('page1').insertBefore(banner, document.getElementById('page1').children[1]);
+  }
+
+  // Run prefill on page load
+  loadPrefill();
 </script>
 </body>
 </html>

@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Program Compliance Survey</title>
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --blue: #1f6eb5; --blue-light: #e8f1fb; --blue-btn: #0b5ed7;
+    --gray-border: #c8c8c8; --gray-bg: #f4f4f4; --gray-input: #f9f9f9;
+    --text: #2c2c2c; --required: #c0392b;
+  }
+  body { font-family: 'Source Sans 3', sans-serif; background: #ebebeb; color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 16px 80px; }
+  .survey-wrapper { width: 100%; max-width: 960px; }
+  .survey-header { background: var(--blue); color: white; padding: 18px 32px; font-size: 1rem; font-weight: 600; letter-spacing: 0.02em; border-radius: 4px 4px 0 0; }
+  .progress-bar-wrap { background: #d0d0d0; height: 6px; }
+  .progress-bar { height: 100%; background: var(--blue); transition: width 0.4s ease; }
+  .page { display: none; background: white; padding: 40px 48px 32px; border: 1px solid #ccc; }
+  .page.active { display: block; }
+  .page-label { font-size: 0.75rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 28px; }
+  .q-block { margin-bottom: 30px; }
+  .q-label { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 10px; display: flex; align-items: baseline; gap: 4px; }
+  .q-label .req { color: var(--required); }
+  input[type="text"], input[type="number"], textarea, select { width: 100%; border: 1px solid var(--gray-border); border-radius: 3px; background: var(--gray-input); font-family: inherit; font-size: 0.92rem; color: var(--text); padding: 9px 11px; outline: none; transition: border-color 0.2s; }
+  input[type="text"]:focus, input[type="number"]:focus, textarea:focus, select:focus { border-color: var(--blue); background: white; }
+  textarea { resize: vertical; min-height: 68px; }
+  select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath fill='%23555' d='M5 7L0 0h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 30px; }
+
+  .name-row { display: flex; gap: 16px; }
+  .name-row .name-field { flex: 1; }
+  .sub-label { font-size: 0.78rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .quarter-row { display: flex; gap: 16px; }
+  .quarter-row .quarter-field { flex: 1; }
+
+  /* Funding source card */
+  .fs-card { border: 1px solid #dde8f7; border-radius: 4px; padding: 18px 20px; margin-bottom: 16px; background: #fafcff; }
+  .fs-card-title { font-size: 0.8rem; font-weight: 700; color: var(--blue); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 14px; }
+  .fs-blurb-label { font-size: 0.78rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; margin-bottom: 6px; }
+
+  /* More than 4 inline input */
+  .more-count-wrap { display: none; margin-top: 12px; align-items: center; gap: 10px; }
+  .more-count-wrap.visible { display: flex; }
+  .more-count-wrap input[type="number"] { width: 80px; }
+  .more-count-wrap label { font-size: 0.9rem; color: var(--text); }
+
+  /* Funder tabs on page 2 */
+  .funder-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--blue-light); margin-bottom: 24px; flex-wrap: wrap; }
+  .funder-tab { padding: 9px 20px; font-size: 0.85rem; font-weight: 600; color: #888; cursor: pointer; border: 1px solid transparent; border-bottom: none; border-radius: 4px 4px 0 0; transition: all 0.15s; user-select: none; }
+  .funder-tab:hover { color: var(--blue); background: var(--blue-light); }
+  .funder-tab.active { color: var(--blue); background: white; border-color: var(--blue-light); border-bottom: 2px solid white; margin-bottom: -2px; }
+
+  .funder-section { display: none; }
+  .funder-section.active { display: block; }
+
+  /* Table */
+  .side-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .side-table th { background: var(--blue-light); color: var(--blue); font-weight: 700; padding: 10px; text-align: left; border: 1px solid #c5d8f0; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+  .side-table td { border: 1px solid var(--gray-border); padding: 7px 8px; vertical-align: middle; }
+  .side-table tr:nth-child(even) td { background: #fafafa; }
+  .side-table input[type="text"], .side-table select, .side-table textarea { border: 1px solid #ddd; border-radius: 2px; padding: 6px 8px; font-size: 0.88rem; }
+  .side-table textarea { min-height: 60px; }
+  .row-num { font-weight: 700; color: #aaa; font-size: 0.78rem; text-align: center; width: 28px; white-space: nowrap; }
+
+  .notes-cell { width: 0; min-width: 0; max-width: 0; padding: 0 !important; overflow: hidden; border-left: none !important; transition: all 0.35s ease; }
+  .notes-cell.visible { width: 220px; min-width: 160px; max-width: 260px; padding: 7px 8px !important; border-left: 1px solid var(--gray-border) !important; }
+  .notes-inner { opacity: 0; transform: translateX(-8px); transition: opacity 0.3s ease 0.1s, transform 0.3s ease 0.1s; white-space: nowrap; overflow: hidden; }
+  .notes-cell.visible .notes-inner { opacity: 1; transform: translateX(0); white-space: normal; }
+  .notes-label { font-size: 0.72rem; font-weight: 700; color: #c0392b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; display: flex; align-items: center; gap: 5px; }
+  .notes-label::before { content: '!'; display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; background: #c0392b; color: white; border-radius: 50%; font-size: 0.65rem; font-weight: 900; flex-shrink: 0; }
+
+  select.met-yes { border-color: #27ae60 !important; background-color: #f0faf4 !important; color: #1a7a42; }
+  select.met-no  { border-color: #c0392b !important; background-color: #fdf0f0 !important; color: #a93226; }
+  select.met-na  { border-color: #aaa !important; background-color: #f7f7f7 !important; color: #666; }
+
+  .notes-th { transition: all 0.35s ease; width: 0; padding: 0 !important; overflow: hidden; border-left: none !important; font-size: 0; }
+  .notes-th.visible { width: 220px; padding: 10px !important; border-left: 1px solid #c5d8f0 !important; font-size: 0.76rem; }
+
+  .section-title { font-size: 1.05rem; font-weight: 700; color: var(--blue); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .section-title::after { content: ''; flex: 1; height: 2px; background: var(--blue-light); border-radius: 1px; }
+  .info-note { font-size: 0.8rem; color: #777; background: #f7f7f7; border-left: 3px solid var(--blue); padding: 8px 12px; border-radius: 2px; margin-bottom: 20px; }
+  .piped-val { color: var(--blue); font-weight: 700; }
+  .add-row-bar { margin-top: 14px; display: flex; align-items: center; gap: 14px; }
+  .btn-add { background: white; color: var(--blue); border: 2px dashed var(--blue); font-size: 0.88rem; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-family: inherit; font-weight: 600; transition: background 0.15s; }
+  .btn-add:hover { background: var(--blue-light); }
+  .add-hint { font-size: 0.78rem; color: #aaa; font-style: italic; }
+  .btn-remove { background: none; border: none; color: #ccc; font-size: 1.2rem; cursor: pointer; padding: 2px 5px; border-radius: 3px; line-height: 1; transition: color 0.15s, background 0.15s; display: block; margin: auto; }
+  .btn-remove:hover { color: #c0392b; background: #fde8e8; }
+  @keyframes rowSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+  .new-row { animation: rowSlide 0.25s ease; }
+  .nav-bar { background: white; border: 1px solid #ccc; border-top: none; padding: 18px 48px; display: flex; justify-content: flex-end; gap: 12px; }
+  .btn { font-family: inherit; font-size: 0.9rem; font-weight: 600; padding: 10px 28px; border-radius: 4px; border: none; cursor: pointer; transition: background 0.15s; }
+  .btn-primary { background: var(--blue-btn); color: white; }
+  .btn-primary:hover { background: #0a52b8; }
+  .btn-secondary { background: white; color: var(--blue-btn); border: 1.5px solid var(--blue-btn); }
+  .btn-secondary:hover { background: var(--blue-light); }
+
+  /* Validation */
+  .field-error { border-color: #c0392b !important; background-color: #fff6f6 !important; }
+  .error-msg { font-size: 0.78rem; color: #c0392b; margin-top: 5px; display: flex; align-items: center; gap: 4px; }
+  .error-msg::before { content: '!'; display: inline-flex; align-items: center; justify-content: center; width: 13px; height: 13px; background: #c0392b; color: white; border-radius: 50%; font-size: 0.62rem; font-weight: 900; flex-shrink: 0; }
+  .validation-banner { background: #fdf0f0; border: 1px solid #e0b0b0; border-radius: 4px; padding: 10px 16px; font-size: 0.85rem; color: #a93226; margin-bottom: 20px; display: none; }
+  .validation-banner.visible { display: block; }
+</style>
+</head>
+<body>
+<div class="survey-wrapper">
+  <div class="survey-header">Program Compliance &amp; Deliverables Report</div>
+  <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:33%"></div></div>
+
+  <!-- PAGE 1 -->
+  <div class="page active" id="page1">
+    <div class="validation-banner" id="validationBanner1">Please fill in all required fields before continuing.</div>
+    <div class="page-label">Page 1 of 3 — Program Information</div>
+
+    <div class="q-block">
+      <div class="q-label"><span class="req">*</span> Program Name</div>
+      <select id="programSelect">
+        <option value="">-- Select a program --</option>
+        <option>ACT Team</option>
+        <option>Baxter Safe Haven</option>
+        <option>Beacon 1 - School Year Prg (Afterschool/Evening/Saturday) PS198</option>
+        <option>Beacon 3 - School Year Prg (Afterschool/Evening/Saturday) - Upper West Side</option>
+        <option>Beacon 3 - Summer Camp - Upper West Side</option>
+        <option>Capitol Hall</option>
+        <option>COFA</option>
+        <option>Community Arts</option>
+        <option>Corner House</option>
+        <option>EDW - Advance and Earn - GED Program</option>
+        <option>EDW - Advance and Earn CNA</option>
+        <option>EDW - Advance and Earn Culinary Arts Program</option>
+        <option>Food and Nutrition Department East and West</option>
+        <option>Goddard Riverside at Isaacs Center NORC</option>
+        <option>Goddard Riverside at Isaacs Older Adult Center</option>
+        <option>Goddard Riverside W 88th Older Adult Center</option>
+        <option>Hillside Sanctuary</option>
+        <option>Homeless Outreach - Downtown</option>
+        <option>Homeless Outreach - Uptown</option>
+        <option>Intensive Mobile Treatment Team (IMT)</option>
+        <option>Jack August Afterschool</option>
+        <option>Law Project</option>
+        <option>Learning to Work (LTW)</option>
+        <option>Lincoln Square - TEP - Teen Expansion Program (Summer)</option>
+        <option>Lincoln Square Afterschool</option>
+        <option>Lincoln Square NORC</option>
+        <option>Lincoln Square Summer Camp</option>
+        <option>Manhattanville Resource Center</option>
+        <option>Monument Sanctuary</option>
+        <option>Older Adult Center Lincoln Square</option>
+        <option>Older Adult NORC Program at Taft/Johnson</option>
+        <option>Options Center</option>
+        <option>Phelps House Social Services Department</option>
+        <option>Resource Center at 140th Street</option>
+        <option>Restgate Sanctuary</option>
+        <option>Star Learning Center</option>
+        <option>Stephan Russo Residence</option>
+        <option>The Senate</option>
+        <option>TOP Clubhouse</option>
+        <option>TOP Opportunities/Green Keepers</option>
+        <option>West 140th Street</option>
+        <option>West Side NORC</option>
+        <option>Young Adult ACT Team</option>
+      </select>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label"><span class="req">*</span> Program Director</div>
+      <div class="name-row">
+        <div class="name-field"><div class="sub-label">First Name</div><input type="text" id="directorFirst" placeholder="First name"></div>
+        <div class="name-field"><div class="sub-label">Last Name</div><input type="text" id="directorLast" placeholder="Last name"></div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label"><span class="req">*</span> Associate Vice President (AVP)</div>
+      <div class="name-row">
+        <div class="name-field"><div class="sub-label">First Name</div><input type="text" id="avpFirst" placeholder="First name"></div>
+        <div class="name-field"><div class="sub-label">Last Name</div><input type="text" id="avpLast" placeholder="Last name"></div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label"><span class="req">*</span> Reporting Period</div>
+      <div class="quarter-row">
+        <div class="quarter-field">
+          <div class="sub-label">Quarter</div>
+          <select id="reportingQuarter">
+            <option value="">-- Select quarter --</option>
+            <option value="Q1">Q1</option>
+            <option value="Q2">Q2</option>
+            <option value="Q3">Q3</option>
+            <option value="Q4">Q4</option>
+          </select>
+        </div>
+        <div class="quarter-field">
+          <div class="sub-label">Year</div>
+          <select id="reportingYear">
+            <option value="">-- Select year --</option>
+            <option value="2025">2025</option>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-block">
+      <div class="q-label"><span class="req">*</span> How many active funding sources does your program have?</div>
+      <select id="fundingCountSelect" onchange="handleFundingCountChange(this.value)" style="max-width:220px;">
+        <option value="">-- Select --</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="more">More than 4</option>
+      </select>
+      <div class="more-count-wrap" id="moreCountWrap">
+        <label>Enter exact number:</label>
+        <input type="number" id="moreFundingCount" min="5" max="20" placeholder="e.g. 6" oninput="updateFundingFields(this.value)">
+      </div>
+    </div>
+
+    <div id="fundingSourceFields"></div>
+
+
+  </div>
+
+  <!-- PAGE 2 -->
+  <div class="page" id="page2">
+    <div class="validation-banner" id="validationBanner2">Please complete all required fields before continuing.</div>
+    <div class="page-label">Page 2 of 3 — Deliverables</div>
+    <div class="info-note">
+      <strong><span id="programDisplay"></span></strong> — <span id="quarterDisplay"></span>. Complete the deliverables table for each funding source below.
+    </div>
+    <div class="funder-tabs" id="funderTabs"></div>
+    <div id="funderSections"></div>
+
+    <!-- Inactive Funding Sources -->
+    <div class="q-block" style="margin-top:36px; padding-top:28px; border-top:2px solid var(--blue-light);">
+      <div class="section-title">Inactive Funding Sources</div>
+      <div class="q-label" style="font-size:0.93rem; margin-bottom:16px;"><span class="req">*</span> Does your program have any inactive funding sources this quarter?</div>
+      <div style="display:flex; gap:20px; margin-bottom:14px;">
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.93rem;">
+          <input type="radio" name="hasInactive" value="yes" onchange="toggleInactiveSection(true)" style="width:auto; accent-color:var(--blue);"> Yes
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.93rem;">
+          <input type="radio" name="hasInactive" value="no" onchange="toggleInactiveSection(false)" style="width:auto; accent-color:var(--blue);"> No
+        </label>
+      </div>
+      <div id="inactiveFundingSection" style="display:none;">
+        <div id="inactiveFundingCards"></div>
+        <button class="btn-add" type="button" onclick="addInactiveFunder()" style="margin-top:4px;">+ Add Inactive Funding Source</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PAGE 3 -->
+  <div class="page" id="page3">
+    <div class="page-label">Page 3 of 3 — Review &amp; Submit</div>
+    <div class="info-note">Review your submission for <span class="piped-val" id="pipedProgram"></span> — <span class="piped-val" id="pipedPeriod"></span>. If anything looks incorrect, go back and update it before submitting.</div>
+    <div id="summaryContent"></div>
+  </div>
+
+  <div class="nav-bar">
+    <button class="btn btn-secondary" id="btnBack" style="display:none;" onclick="goBack()">&#8592; Back</button>
+    <button class="btn btn-primary" id="btnNext" onclick="goNext()">Next page &#8250;</button>
+  </div>
+</div>
+
+<script>
+  let currentPage = 1;
+  const totalPages = 3;
+  // rowCounts per funder index
+  let rowCounts = {};
+
+  // ── Funding count handling ──────────────────────────────────────────────────
+
+  function handleFundingCountChange(val) {
+    const moreWrap = document.getElementById('moreCountWrap');
+    if (val === 'more') {
+      moreWrap.classList.add('visible');
+      document.getElementById('fundingSourceFields').innerHTML = '';
+    } else {
+      moreWrap.classList.remove('visible');
+      document.getElementById('moreFundingCount').value = '';
+      updateFundingFields(val);
+    }
+  }
+
+  function updateFundingFields(count) {
+    const container = document.getElementById('fundingSourceFields');
+    container.innerHTML = '';
+    const n = parseInt(count);
+    if (!n || n < 1) return;
+    for (let i = 1; i <= n; i++) {
+      const card = document.createElement('div');
+      card.className = 'fs-card';
+      card.innerHTML = `
+        <div class="fs-card-title">Funding Source ${i}</div>
+        <div class="sub-label">Name / Agency</div>
+        <input type="text" id="fundingSource${i}" placeholder="e.g. DYCD, OTDA, DANY">
+        <div class="fs-blurb-label">Description (optional)</div>
+        <textarea id="fundingBlurb${i}" placeholder="Brief description of what this funding source covers for your program..."></textarea>
+      `;
+      container.appendChild(card);
+    }
+  }
+
+  function getFunderCount() {
+    const sel = document.getElementById('fundingCountSelect').value;
+    if (sel === 'more') {
+      return parseInt(document.getElementById('moreFundingCount').value) || 0;
+    }
+    return parseInt(sel) || 0;
+  }
+
+  function getFunderNames() {
+    const count = getFunderCount();
+    const names = [];
+    for (let i = 1; i <= count; i++) {
+      const el = document.getElementById('fundingSource' + i);
+      names.push(el && el.value.trim() ? el.value.trim() : `Funder ${i}`);
+    }
+    return names;
+  }
+
+  // ── Page 2: per-funder deliverable tables ─────────────────────────────────
+
+  function buildFunderTables(funderNames) {
+    const tabsEl = document.getElementById('funderTabs');
+    const sectionsEl = document.getElementById('funderSections');
+    tabsEl.innerHTML = '';
+    sectionsEl.innerHTML = '';
+    rowCounts = {};
+
+    funderNames.forEach((name, idx) => {
+      const i = idx + 1;
+      rowCounts[i] = 0;
+
+      // Tab
+      const tab = document.createElement('div');
+      tab.className = 'funder-tab' + (idx === 0 ? ' active' : '');
+      tab.textContent = name;
+      tab.dataset.funder = i;
+      tab.onclick = () => switchTab(i);
+      tabsEl.appendChild(tab);
+
+      // Section
+      const section = document.createElement('div');
+      section.className = 'funder-section' + (idx === 0 ? ' active' : '');
+      section.id = 'funderSection' + i;
+      section.innerHTML = `
+        <div class="section-title">${name}</div>
+        <table class="side-table" id="delivTable${i}">
+          <thead>
+            <tr>
+              <th class="row-num">#</th>
+              <th style="width:28%">Deliverable Description</th>
+              <th>Contracted Units</th>
+              <th>Actual Units</th>
+              <th>Met This Quarter?</th>
+              <th class="notes-th" id="notesTh${i}">Commentary</th>
+              <th style="width:30px;"></th>
+            </tr>
+          </thead>
+          <tbody id="deliverableRows${i}"></tbody>
+        </table>
+        <div class="add-row-bar">
+          <button class="btn-add" onclick="addRow(${i})">+ Add Another Deliverable</button>
+          <span class="add-hint">Add as many rows as needed</span>
+        </div>
+      `;
+      sectionsEl.appendChild(section);
+
+      // Seed 2 rows
+      addRow(i); addRow(i);
+    });
+  }
+
+  function switchTab(funderIdx) {
+    document.querySelectorAll('.funder-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.funder-section').forEach(s => s.classList.remove('active'));
+    document.querySelector(`.funder-tab[data-funder="${funderIdx}"]`).classList.add('active');
+    document.getElementById('funderSection' + funderIdx).classList.add('active');
+  }
+
+  function makeRow(funderIdx, num, animate) {
+    const tr = document.createElement('tr');
+    if (animate) tr.classList.add('new-row');
+    tr.innerHTML = `
+      <td class="row-num">${num}</td>
+      <td><textarea placeholder="Describe deliverable..."></textarea></td>
+      <td><input type="text" placeholder="e.g. 120"></td>
+      <td><input type="text" placeholder="e.g. 114"></td>
+      <td>
+        <select class="met-select" onchange="handleMetChange(this, ${funderIdx})">
+          <option value="">Select</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+          <option value="na">N/A</option>
+        </select>
+      </td>
+      <td class="notes-cell">
+        <div class="notes-inner">
+          <div class="notes-label">Commentary</div>
+          <textarea placeholder="Required if No or N/A..."></textarea>
+        </div>
+      </td>
+      <td><button class="btn-remove" onclick="removeRow(this, ${funderIdx})" title="Remove">&times;</button></td>
+    `;
+    return tr;
+  }
+
+  function addRow(funderIdx) {
+    rowCounts[funderIdx] = (rowCounts[funderIdx] || 0) + 1;
+    const tbody = document.getElementById('deliverableRows' + funderIdx);
+    tbody.appendChild(makeRow(funderIdx, rowCounts[funderIdx], rowCounts[funderIdx] > 1));
+    refreshButtons(funderIdx);
+  }
+
+  function removeRow(btn, funderIdx) {
+    const row = btn.closest('tr');
+    row.style.transition = 'opacity 0.2s';
+    row.style.opacity = '0';
+    setTimeout(() => {
+      row.remove();
+      renumber(funderIdx);
+      updateNotesHeader(funderIdx);
+    }, 200);
+  }
+
+  function renumber(funderIdx) {
+    document.querySelectorAll('#deliverableRows' + funderIdx + ' tr').forEach((row, i) => {
+      row.querySelector('.row-num').textContent = i + 1;
+    });
+    refreshButtons(funderIdx);
+  }
+
+  function refreshButtons(funderIdx) {
+    const rows = document.querySelectorAll('#deliverableRows' + funderIdx + ' tr');
+    rows.forEach(row => {
+      const btn = row.querySelector('.btn-remove');
+      if (btn) btn.style.visibility = rows.length > 1 ? 'visible' : 'hidden';
+    });
+  }
+
+  function handleMetChange(sel, funderIdx) {
+    const val = sel.value;
+    sel.className = 'met-select';
+    if (val === 'yes') sel.classList.add('met-yes');
+    else if (val === 'no') sel.classList.add('met-no');
+    else if (val === 'na') sel.classList.add('met-na');
+
+    const row = sel.closest('tr');
+    const notesCell = row.querySelector('.notes-cell');
+    if (val === 'no' || val === 'na') {
+      notesCell.classList.add('visible');
+    } else {
+      notesCell.classList.remove('visible');
+      notesCell.querySelector('textarea').value = '';
+    }
+    updateNotesHeader(funderIdx);
+  }
+
+  function updateNotesHeader(funderIdx) {
+    const anyNo = [...document.querySelectorAll('#deliverableRows' + funderIdx + ' .met-select')]
+      .some(s => s.value === 'no' || s.value === 'na');
+    document.getElementById('notesTh' + funderIdx).classList.toggle('visible', anyNo);
+  }
+
+  // ── Navigation ─────────────────────────────────────────────────────────────
+
+  // ── Validation ─────────────────────────────────────────────────────────────
+
+  function markError(el, msg) {
+    el.classList.add('field-error');
+    // Remove any existing error msg
+    const existing = el.parentNode.querySelector('.error-msg');
+    if (existing) existing.remove();
+    const err = document.createElement('div');
+    err.className = 'error-msg';
+    err.textContent = msg;
+    el.parentNode.appendChild(err);
+  }
+
+  function clearErrors(pageId) {
+    document.querySelectorAll('#' + pageId + ' .field-error').forEach(el => el.classList.remove('field-error'));
+    document.querySelectorAll('#' + pageId + ' .error-msg').forEach(el => el.remove());
+  }
+
+  function validatePage1() {
+    clearErrors('page1');
+    let valid = true;
+
+    const program = document.getElementById('programSelect');
+    if (!program.value) { markError(program, 'Please select a program.'); valid = false; }
+
+    const dirFirst = document.getElementById('directorFirst');
+    if (!dirFirst.value.trim()) { markError(dirFirst, 'Required.'); valid = false; }
+    const dirLast = document.getElementById('directorLast');
+    if (!dirLast.value.trim()) { markError(dirLast, 'Required.'); valid = false; }
+
+    const avpFirst = document.getElementById('avpFirst');
+    if (!avpFirst.value.trim()) { markError(avpFirst, 'Required.'); valid = false; }
+    const avpLast = document.getElementById('avpLast');
+    if (!avpLast.value.trim()) { markError(avpLast, 'Required.'); valid = false; }
+
+    const quarter = document.getElementById('reportingQuarter');
+    if (!quarter.value) { markError(quarter, 'Please select a quarter.'); valid = false; }
+    const year = document.getElementById('reportingYear');
+    if (!year.value) { markError(year, 'Please select a year.'); valid = false; }
+
+    const countSel = document.getElementById('fundingCountSelect');
+    if (!countSel.value) { markError(countSel, 'Please select the number of active funding sources.'); valid = false; }
+
+    const n = getFunderCount();
+    for (let i = 1; i <= n; i++) {
+      const fsEl = document.getElementById('fundingSource' + i);
+      if (fsEl && !fsEl.value.trim()) { markError(fsEl, 'Please enter a name for this funding source.'); valid = false; }
+    }
+
+    document.getElementById('validationBanner1').classList.toggle('visible', !valid);
+    return valid;
+  }
+
+  function validatePage2() {
+    clearErrors('page2');
+    let valid = true;
+    const errors = [];
+
+    // Each deliverable must have Met This Quarter selected
+    const count = getFunderCount();
+    for (let i = 1; i <= count; i++) {
+      const selects = document.querySelectorAll('#deliverableRows' + i + ' .met-select');
+      selects.forEach((sel, idx) => {
+        if (!sel.value) {
+          sel.classList.add('field-error');
+          valid = false;
+          errors.push(`Please select Met This Quarter for all deliverables under ${getFunderNames()[i-1]}.`);
+        }
+      });
+    }
+
+    // Inactive sources Yes/No must be answered
+    const inactiveRadio = document.querySelector('input[name="hasInactive"]:checked');
+    if (!inactiveRadio) {
+      valid = false;
+      errors.push('Please answer whether your program has any inactive funding sources.');
+      // Highlight the question label area
+      const label = document.querySelector('input[name="hasInactive"]');
+      if (label) label.closest('.q-block').style.outline = '2px solid #c0392b';
+      setTimeout(() => {
+        const lbl = document.querySelector('input[name="hasInactive"]');
+        if (lbl) lbl.closest('.q-block').style.outline = '';
+      }, 3000);
+    } else if (inactiveRadio.value === 'yes') {
+      // Each inactive funder must have a name and notes
+      const inactiveCards = document.querySelectorAll('#inactiveFundingCards .fs-card');
+      inactiveCards.forEach((card, idx) => {
+        const nameEl = card.querySelector('input[type="text"]');
+        const notesEl = card.querySelector('textarea');
+        if (nameEl && !nameEl.value.trim()) { markError(nameEl, 'Please enter the name of this inactive funding source.'); valid = false; }
+        if (notesEl && !notesEl.value.trim()) { markError(notesEl, 'Notes are required for inactive funding sources.'); valid = false; }
+      });
+    }
+
+    const banner = document.getElementById('validationBanner2');
+    if (!valid) {
+      const uniqueErrors = [...new Set(errors)];
+      banner.textContent = uniqueErrors.length ? uniqueErrors[0] : 'Please complete all required fields before continuing.';
+      banner.classList.add('visible');
+      banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      banner.classList.remove('visible');
+    }
+    return valid;
+  }
+
+  function goNext() {
+    if (currentPage === 1) {
+      if (!validatePage1()) return;
+
+      const funderNames = getFunderNames();
+      const quarter = document.getElementById('reportingQuarter').value;
+      const year = document.getElementById('reportingYear').value;
+      const program = document.getElementById('programSelect').value || 'Program';
+      const periodStr = (quarter && year) ? `${quarter} ${year}` : '';
+
+      document.getElementById('programDisplay').textContent = program;
+      document.getElementById('quarterDisplay').textContent = periodStr;
+      document.getElementById('pipedProgram').textContent = program;
+      document.getElementById('pipedPeriod').textContent = periodStr;
+
+      buildFunderTables(funderNames);
+    }
+
+    if (currentPage === 2) {
+      if (!validatePage2()) return;
+      buildSummary();
+    }
+
+    if (currentPage < totalPages) {
+      document.getElementById('page' + currentPage).classList.remove('active');
+      currentPage++;
+      document.getElementById('page' + currentPage).classList.add('active');
+      updateNav();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      submitForm();
+    }
+  }
+
+  // ── Submit ──────────────────────────────────────────────────────────────────
+
+  async function submitForm() {
+    const btn = document.getElementById('btnNext');
+    btn.textContent = 'Submitting...';
+    btn.disabled = true;
+
+    // Collect funder and deliverable data
+    const count = getFunderCount();
+    const funderNames = getFunderNames();
+    const funders = [];
+    for (let i = 1; i <= count; i++) {
+      const blurbEl = document.getElementById('fundingBlurb' + i);
+      const rows = document.querySelectorAll('#deliverableRows' + i + ' tr');
+      const deliverables = [];
+      rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if (cells.length < 6) return;
+        const desc = (cells[1].querySelector('textarea') || {}).value || '';
+        const contracted = (cells[2].querySelector('input') || {}).value || '';
+        const actual = (cells[3].querySelector('input') || {}).value || '';
+        const metSel = cells[4].querySelector('select');
+        const met = metSel ? metSel.value : '';
+        const commentary = (cells[5].querySelector('textarea') || {}).value || '';
+        deliverables.push({ description: desc, contracted, actual, met, commentary });
+      });
+      funders.push({
+        name: funderNames[i - 1],
+        description: blurbEl ? blurbEl.value.trim() : '',
+        deliverables
+      });
+    }
+
+    // Collect inactive funders
+    const inactiveRadio = document.querySelector('input[name="hasInactive"]:checked');
+    const hasInactive = inactiveRadio ? inactiveRadio.value : 'no';
+    const inactiveFunders = [];
+    if (hasInactive === 'yes') {
+      document.querySelectorAll('#inactiveFundingCards .fs-card').forEach(card => {
+        const nameEl = card.querySelector('input[type="text"]');
+        const notesEl = card.querySelector('textarea');
+        inactiveFunders.push({
+          name: nameEl ? nameEl.value.trim() : '',
+          notes: notesEl ? notesEl.value.trim() : ''
+        });
+      });
+    }
+
+    const payload = {
+      submissionId: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+      submissionDate: new Date().toISOString().split('T')[0],
+      reportingQuarter: document.getElementById('reportingQuarter').value,
+      reportingYear: document.getElementById('reportingYear').value,
+      programName: document.getElementById('programSelect').value,
+      directorFirstName: document.getElementById('directorFirst').value.trim(),
+      directorLastName: document.getElementById('directorLast').value.trim(),
+      avpFirstName: document.getElementById('avpFirst').value.trim(),
+      avpLastName: document.getElementById('avpLast').value.trim(),
+      activeFunderCount: count,
+      funders,
+      hasInactiveFunders: hasInactive,
+      inactiveFunders
+    };
+
+    const POWER_AUTOMATE_URL = 'https://default7823eb282d20427bad9c66fae6b7b9.df.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/905da24a175d446aaac3010417b77a35/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1ImBpXcbrGi2MsOQ-6ZVre9-YtroZuDAo2mGnLdBoXM';
+
+    try {
+      const response = await fetch(POWER_AUTOMATE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (response.ok || response.status === 202) {
+        // Show confirmation
+        document.getElementById('page3').innerHTML = `
+          <div style="text-align:center; padding:48px 24px;">
+            <div style="font-size:2.5rem; margin-bottom:16px;">&#10003;</div>
+            <div style="font-size:1.2rem; font-weight:700; color:#1f6eb5; margin-bottom:10px;">Submission Received</div>
+            <div style="font-size:0.95rem; color:#555; max-width:480px; margin:0 auto; line-height:1.7;">
+              Thank you. Your compliance report for <strong>${payload.programName}</strong> — ${payload.reportingQuarter} ${payload.reportingYear} has been submitted successfully. You will receive a confirmation email once it has been reviewed.
+            </div>
+          </div>
+        `;
+        document.querySelector('.nav-bar').style.display = 'none';
+      } else {
+        throw new Error('Submission failed with status ' + response.status);
+      }
+    } catch (err) {
+      btn.textContent = 'Submit';
+      btn.disabled = false;
+      alert('There was a problem submitting the form. Please try again or contact your compliance officer.');
+      console.error(err);
+    }
+  }
+
+  function goBack() {
+    if (currentPage > 1) {
+      document.getElementById('page' + currentPage).classList.remove('active');
+      currentPage--;
+      document.getElementById('page' + currentPage).classList.add('active');
+      updateNav();
+    }
+  }
+
+  function updateNav() {
+    document.getElementById('progressBar').style.width = ((currentPage / totalPages) * 100) + '%';
+    document.getElementById('btnBack').style.display = currentPage > 1 ? 'inline-block' : 'none';
+    document.getElementById('btnNext').textContent = currentPage === totalPages ? 'Submit' : 'Next page ›';
+  }
+
+  // ── Inactive Funding Sources ───────────────────────────────────────────────
+
+  let inactiveCount = 0;
+
+  function toggleInactiveSection(show) {
+    document.getElementById('inactiveFundingSection').style.display = show ? 'block' : 'none';
+    if (!show) {
+      document.getElementById('inactiveFundingCards').innerHTML = '';
+      inactiveCount = 0;
+    } else if (inactiveCount === 0) {
+      addInactiveFunder();
+    }
+  }
+
+  function addInactiveFunder() {
+    inactiveCount++;
+    const container = document.getElementById('inactiveFundingCards');
+    const card = document.createElement('div');
+    card.className = 'fs-card';
+    card.style.borderColor = '#e0d8f0';
+    card.style.background = '#fdfcff';
+    card.dataset.inactiveId = inactiveCount;
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div class="fs-card-title" style="color:#7a5c99; margin-bottom:0;">Inactive Funding Source ${inactiveCount}</div>
+        <button class="btn-remove" onclick="removeInactiveFunder(this)" title="Remove" style="visibility:visible;">&times;</button>
+      </div>
+      <div class="sub-label">Name / Agency</div>
+      <input type="text" placeholder="e.g. HRA, DOE">
+      <div class="fs-blurb-label" style="color:var(--text);">Notes <span style="color:var(--required);">*</span></div>
+      <textarea placeholder="Explain why this funding source is inactive..."></textarea>
+    `;
+    container.appendChild(card);
+    refreshInactiveButtons();
+  }
+
+  function removeInactiveFunder(btn) {
+    const card = btn.closest('.fs-card');
+    card.style.transition = 'opacity 0.2s';
+    card.style.opacity = '0';
+    setTimeout(() => {
+      card.remove();
+      inactiveCount = Math.max(0, inactiveCount - 1);
+      // Renumber remaining cards
+      document.querySelectorAll('#inactiveFundingCards .fs-card').forEach((c, i) => {
+        c.querySelector('.fs-card-title').textContent = `Inactive Funding Source ${i + 1}`;
+      });
+      refreshInactiveButtons();
+    }, 200);
+  }
+
+  function refreshInactiveButtons() {
+    const cards = document.querySelectorAll('#inactiveFundingCards .fs-card');
+    cards.forEach(card => {
+      const btn = card.querySelector('.btn-remove');
+      if (btn) btn.style.visibility = cards.length > 1 ? 'visible' : 'hidden';
+    });
+  }
+
+  // ── Summary ────────────────────────────────────────────────────────────────
+
+  function buildSummary() {
+    const program = document.getElementById('programSelect').value || '—';
+    const dirFirst = document.getElementById('directorFirst').value || '—';
+    const dirLast = document.getElementById('directorLast').value || '';
+    const avpFirst = document.getElementById('avpFirst').value || '—';
+    const avpLast = document.getElementById('avpLast').value || '';
+    const quarter = document.getElementById('reportingQuarter').value || '—';
+    const year = document.getElementById('reportingYear').value || '—';
+    const funderNames = getFunderNames();
+    const count = getFunderCount();
+
+    let html = '';
+
+    // ── Program info block ────────────────────────────────────────────────
+    html += `
+      <div style="margin-bottom:28px;">
+        <div class="section-title">Program Information</div>
+        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; width:35%; background:#fafafa;">Program</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${program}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;">Program Director</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${dirFirst} ${dirLast}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;">AVP</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${avpFirst} ${avpLast}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;">Reporting Period</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${quarter} ${year}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;">Active Funding Sources</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${funderNames.join(', ')}</td></tr>
+        </table>
+      </div>
+    `;
+
+    // ── Per-funder deliverables ────────────────────────────────────────────
+    for (let i = 1; i <= count; i++) {
+      const name = funderNames[i - 1];
+      const blurbEl = document.getElementById('fundingBlurb' + i);
+      const blurb = blurbEl ? blurbEl.value.trim() : '';
+      const rows = document.querySelectorAll('#deliverableRows' + i + ' tr');
+
+      html += `<div style="margin-bottom:28px;">`;
+      html += `<div class="section-title">${name} — Deliverables</div>`;
+      if (blurb) html += `<p style="font-size:0.85rem; color:#666; margin-bottom:12px; font-style:italic;">${blurb}</p>`;
+
+      if (rows.length === 0) {
+        html += `<p style="font-size:0.85rem; color:#aaa;">No deliverables entered.</p>`;
+      } else {
+        html += `
+          <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+            <thead>
+              <tr>
+                <th style="background:var(--blue-light); color:var(--blue); padding:8px 10px; border:1px solid #c5d8f0; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">#</th>
+                <th style="background:var(--blue-light); color:var(--blue); padding:8px 10px; border:1px solid #c5d8f0; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em; width:35%;">Deliverable</th>
+                <th style="background:var(--blue-light); color:var(--blue); padding:8px 10px; border:1px solid #c5d8f0; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">Contracted</th>
+                <th style="background:var(--blue-light); color:var(--blue); padding:8px 10px; border:1px solid #c5d8f0; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">Actual</th>
+                <th style="background:var(--blue-light); color:var(--blue); padding:8px 10px; border:1px solid #c5d8f0; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">Met?</th>
+                <th style="background:var(--blue-light); color:var(--blue); padding:8px 10px; border:1px solid #c5d8f0; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">Commentary</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        rows.forEach((row, idx) => {
+          const cells = row.querySelectorAll('td');
+          const num = idx + 1;
+          const desc = cells[1] ? (cells[1].querySelector('textarea') || {}).value || '—' : '—';
+          const contracted = cells[2] ? (cells[2].querySelector('input') || {}).value || '—' : '—';
+          const actual = cells[3] ? (cells[3].querySelector('input') || {}).value || '—' : '—';
+          const metSel = cells[4] ? cells[4].querySelector('select') : null;
+          const met = metSel ? (metSel.value || '—') : '—';
+          const metLabel = met === 'yes' ? 'Yes' : met === 'no' ? 'No' : met === 'na' ? 'N/A' : '—';
+          const metColor = met === 'yes' ? '#1a7a42' : met === 'no' ? '#a93226' : '#666';
+          const commentary = cells[5] ? ((cells[5].querySelector('textarea') || {}).value || '') : '';
+
+          html += `
+            <tr>
+              <td style="padding:7px 10px; border:1px solid #e0e0e0; color:#aaa; font-weight:700; font-size:0.78rem;">${num}</td>
+              <td style="padding:7px 10px; border:1px solid #e0e0e0;">${desc}</td>
+              <td style="padding:7px 10px; border:1px solid #e0e0e0;">${contracted}</td>
+              <td style="padding:7px 10px; border:1px solid #e0e0e0;">${actual}</td>
+              <td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; color:${metColor};">${metLabel}</td>
+              <td style="padding:7px 10px; border:1px solid #e0e0e0; font-size:0.84rem; color:#555;">${commentary || '<span style="color:#ccc;">—</span>'}</td>
+            </tr>
+          `;
+        });
+        html += `</tbody></table>`;
+      }
+      html += `</div>`;
+    }
+
+    // ── Inactive funding sources ───────────────────────────────────────────
+    const inactiveRadio = document.querySelector('input[name="hasInactive"]:checked');
+    const hasInactive = inactiveRadio ? inactiveRadio.value : 'no';
+
+    html += `<div style="margin-bottom:28px;"><div class="section-title">Inactive Funding Sources</div>`;
+    if (hasInactive === 'no') {
+      html += `<p style="font-size:0.9rem; color:#555;">None reported.</p>`;
+    } else {
+      const inactiveCards = document.querySelectorAll('#inactiveFundingCards .fs-card');
+      if (inactiveCards.length === 0) {
+        html += `<p style="font-size:0.9rem; color:#aaa;">None entered.</p>`;
+      } else {
+        html += `<table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+          <thead>
+            <tr>
+              <th style="background:#f3eeff; color:#7a5c99; padding:8px 10px; border:1px solid #d8cff0; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">Funding Source</th>
+              <th style="background:#f3eeff; color:#7a5c99; padding:8px 10px; border:1px solid #d8cff0; text-align:left; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.05em;">Notes</th>
+            </tr>
+          </thead>
+          <tbody>`;
+        inactiveCards.forEach(card => {
+          const nameEl = card.querySelector('input[type="text"]');
+          const notesEl = card.querySelector('textarea');
+          const name = nameEl ? nameEl.value.trim() || '—' : '—';
+          const notes = notesEl ? notesEl.value.trim() || '—' : '—';
+          html += `
+            <tr>
+              <td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600;">${name}</td>
+              <td style="padding:7px 10px; border:1px solid #e0e0e0; color:#555;">${notes}</td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
+      }
+    }
+    html += `</div>`;
+
+    document.getElementById('summaryContent').innerHTML = html;
+  }
+</script>
+</body>
+</html>

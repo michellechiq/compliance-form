@@ -544,15 +544,40 @@
     let valid = true;
     const errors = [];
 
-    // Each deliverable must have Met This Quarter selected
+    // Each funder must have at least one deliverable with a description
     const count = getFunderCount();
+    const funderNames = getFunderNames();
+    for (let i = 1; i <= count; i++) {
+      const rows = document.querySelectorAll('#deliverableRows' + i + ' tr');
+      if (rows.length === 0) {
+        valid = false;
+        errors.push(`Please add at least one deliverable for ${funderNames[i-1]}.`);
+        // Switch to that tab to show the error
+        switchTab(i);
+      } else {
+        rows.forEach((row, idx) => {
+          const descEl = row.querySelector('td:nth-child(2) textarea');
+          if (descEl && !descEl.value.trim()) {
+            descEl.classList.add('field-error');
+            const err = document.createElement('div');
+            err.className = 'error-msg';
+            err.textContent = 'Please enter a deliverable description.';
+            descEl.parentNode.appendChild(err);
+            valid = false;
+            errors.push(`All deliverable descriptions are required under ${funderNames[i-1]}.`);
+          }
+        });
+      }
+    }
+
+    // Each deliverable must have Met This Quarter selected
     for (let i = 1; i <= count; i++) {
       const selects = document.querySelectorAll('#deliverableRows' + i + ' .met-select');
       selects.forEach((sel, idx) => {
         if (!sel.value) {
           sel.classList.add('field-error');
           valid = false;
-          errors.push(`Please select Met This Quarter for all deliverables under ${getFunderNames()[i-1]}.`);
+          errors.push(`Please select Met This Quarter for all deliverables under ${funderNames[i-1]}.`);
         }
       });
     }
@@ -1056,8 +1081,88 @@
     }
   }
 
+  function checkViewMode() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('view') !== 'true') return;
+
+    const raw = params.get('prefill');
+    if (!raw) return;
+
+    let data;
+    try {
+      data = JSON.parse(decodeURIComponent(raw));
+    } catch (e) { return; }
+
+    // Store globally so buildSummary can read it
+    prefillData = data;
+
+    // Hide nav bar and progress bar
+    document.querySelector('.nav-bar').style.display = 'none';
+    document.querySelector('.progress-bar-wrap').style.display = 'none';
+
+    // Update header
+    document.querySelector('.survey-header').textContent = 'Compliance Submission Review — ' + (data.programName || '') + ' — ' + (data.reportingQuarter || '') + ' ' + (data.reportingYear || '');
+
+    // Hide all pages except page 3
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const page3 = document.getElementById('page3');
+    page3.classList.add('active');
+
+    // Update info note
+    document.getElementById('pipedProgram').textContent = data.programName || '';
+    document.getElementById('pipedPeriod').textContent = (data.reportingQuarter || '') + ' ' + (data.reportingYear || '');
+
+    // Populate prefillData fields so buildSummary works
+    // Temporarily set form fields from data
+    const programEl = document.getElementById('programSelect');
+    [...programEl.options].forEach(o => { if (o.value === data.programName) o.selected = true; });
+    if (data.directorFirstName) document.getElementById('directorFirst').value = data.directorFirstName;
+    if (data.directorLastName) document.getElementById('directorLast').value = data.directorLastName;
+    if (data.avpFirstName) document.getElementById('avpFirst').value = data.avpFirstName;
+    if (data.avpLastName) document.getElementById('avpLast').value = data.avpLastName;
+    const quarterEl = document.getElementById('reportingQuarter');
+    [...quarterEl.options].forEach(o => { if (o.value === data.reportingQuarter) o.selected = true; });
+    const yearEl = document.getElementById('reportingYear');
+    [...yearEl.options].forEach(o => { if (o.value === data.reportingYear) o.selected = true; });
+
+    // Set up funding sources so buildSummary can read deliverables
+    if (data.funders && data.activeFunderCount) {
+      const n = data.activeFunderCount;
+      const countEl = document.getElementById('fundingCountSelect');
+      if (n <= 4) {
+        [...countEl.options].forEach(o => { if (o.value === String(n)) o.selected = true; });
+      } else {
+        [...countEl.options].forEach(o => { if (o.value === 'more') o.selected = true; });
+        document.getElementById('moreFundingCount').value = n;
+      }
+      updateFundingFields(n);
+      data.funders.forEach((funder, idx) => {
+        const i = idx + 1;
+        const nameEl = document.getElementById('fundingSource' + i);
+        const blurbEl = document.getElementById('fundingBlurb' + i);
+        if (nameEl) nameEl.value = funder.name || '';
+        if (blurbEl) blurbEl.value = funder.description || '';
+      });
+
+      // Build funder tables silently then prefill deliverables
+      buildFunderTables(data.funders.map(f => f.name));
+      setTimeout(() => {
+        prefillDeliverables(data);
+        setTimeout(() => {
+          buildSummary();
+          // Add read-only notice
+          const notice = document.createElement('div');
+          notice.style.cssText = 'background:#fff8e6; border:1px solid #f0d060; border-radius:4px; padding:10px 16px; font-size:0.85rem; color:#7a6200; margin-bottom:20px;';
+          notice.textContent = 'This is a read-only view of the submission. Use your approval request in Teams or Outlook to approve or reject.';
+          page3.insertBefore(notice, page3.firstChild);
+        }, 100);
+      }, 50);
+    }
+  }
+
   // Run prefill on page load
   loadPrefill();
+  checkViewMode();
 </script>
 </body>
 </html>

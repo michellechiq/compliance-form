@@ -688,7 +688,8 @@
       activeFunderCount: count,
       funders,
       hasInactiveFunders: hasInactive,
-      inactiveFunders
+      inactiveFunders,
+      resubmissionOf: (prefillData && prefillData.resubmissionOf) ? prefillData.resubmissionOf : ''
     };
 
     const POWER_AUTOMATE_URL = 'https://default7823eb282d20427bad9c66fae6b7b9.df.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/905da24a175d446aaac3010417b77a35/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1ImBpXcbrGi2MsOQ-6ZVre9-YtroZuDAo2mGnLdBoXM';
@@ -935,6 +936,12 @@
     } catch (e) {
       console.warn('Prefill data could not be parsed.', e);
       return;
+    }
+
+    // Check for resubmissionOf parameter
+    const resubmissionOf = params.get('resubmissionOf');
+    if (resubmissionOf) {
+      prefillData.resubmissionOf = resubmissionOf;
     }
 
     // Program Name

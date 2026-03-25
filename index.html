@@ -594,7 +594,7 @@
       document.getElementById('pipedPeriod').textContent = periodStr;
 
       buildFunderTables(funderNames);
-      if (prefillData) prefillDeliverables(prefillData);
+      if (prefillData) setTimeout(() => prefillDeliverables(prefillData), 50);
     }
 
     if (currentPage === 2) {

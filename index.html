@@ -291,9 +291,19 @@
 
   function updateFundingFields(count) {
     const container = document.getElementById('fundingSourceFields');
-    container.innerHTML = '';
     const n = parseInt(count);
-    if (!n || n < 1) return;
+    if (!n || n < 1) { container.innerHTML = ''; return; }
+
+    // Save existing values before rebuilding
+    const savedNames = {}, savedBlurbs = {};
+    for (let i = 1; i <= 20; i++) {
+      const nameEl = document.getElementById('fundingSource' + i);
+      const blurbEl = document.getElementById('fundingBlurb' + i);
+      if (nameEl) savedNames[i] = nameEl.value;
+      if (blurbEl) savedBlurbs[i] = blurbEl.value;
+    }
+
+    container.innerHTML = '';
     for (let i = 1; i <= n; i++) {
       const card = document.createElement('div');
       card.className = 'fs-card';
@@ -305,6 +315,10 @@
         <textarea id="fundingBlurb${i}" placeholder="Brief description of what this funding source covers for your program..."></textarea>
       `;
       container.appendChild(card);
+
+      // Restore saved values
+      if (savedNames[i]) document.getElementById('fundingSource' + i).value = savedNames[i];
+      if (savedBlurbs[i]) document.getElementById('fundingBlurb' + i).value = savedBlurbs[i];
     }
   }
 

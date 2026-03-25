@@ -272,8 +272,8 @@
 <script>
   let currentPage = 1;
   const totalPages = 3;
-  // rowCounts per funder index
   let rowCounts = {};
+  let prefillData = null; // stores prefill data for use after page 2 builds
 
   // ── Funding count handling ──────────────────────────────────────────────────
 
@@ -594,6 +594,7 @@
       document.getElementById('pipedPeriod').textContent = periodStr;
 
       buildFunderTables(funderNames);
+      if (prefillData) prefillDeliverables(prefillData);
     }
 
     if (currentPage === 2) {
@@ -916,6 +917,7 @@
     let data;
     try {
       data = JSON.parse(decodeURIComponent(raw));
+      prefillData = data;
     } catch (e) {
       console.warn('Prefill data could not be parsed.', e);
       return;
@@ -971,6 +973,66 @@
     banner.style.cssText = 'background:#e8f4fd; border:1px solid #b0d4f0; border-radius:4px; padding:10px 16px; font-size:0.85rem; color:#1a5a8a; margin-bottom:20px;';
         banner.textContent = "This form has been pre-filled with last quarters submission. Review and update as needed before submitting.";
     document.getElementById('page1').insertBefore(banner, document.getElementById('page1').children[1]);
+  }
+
+  function prefillDeliverables(data) {
+    if (!data.funders) return;
+    data.funders.forEach((funder, idx) => {
+      const i = idx + 1;
+      const tbody = document.getElementById('deliverableRows' + i);
+      if (!tbody || !funder.deliverables) return;
+
+      // Clear the default seeded rows
+      tbody.innerHTML = '';
+      rowCounts[i] = 0;
+
+      funder.deliverables.forEach(deliv => {
+        rowCounts[i]++;
+        const tr = makeRow(i, rowCounts[i], false);
+        tbody.appendChild(tr);
+
+        const cells = tr.querySelectorAll('td');
+        if (cells[1]) cells[1].querySelector('textarea').value = deliv.description || '';
+        if (cells[2]) cells[2].querySelector('input').value = deliv.contracted || '';
+        if (cells[3]) cells[3].querySelector('input').value = deliv.actual || '';
+        if (cells[4]) {
+          const sel = cells[4].querySelector('select');
+          sel.value = deliv.met || '';
+          if (deliv.met) {
+            sel.className = 'met-select';
+            if (deliv.met === 'yes') sel.classList.add('met-yes');
+            else if (deliv.met === 'no') sel.classList.add('met-no');
+            else if (deliv.met === 'na') sel.classList.add('met-na');
+            if (deliv.met === 'no' || deliv.met === 'na') {
+              cells[5].classList.add('visible');
+              cells[5].querySelector('textarea').value = deliv.commentary || '';
+            }
+          }
+        }
+      });
+      refreshButtons(i);
+      updateNotesHeader(i);
+    });
+
+    // Prefill inactive funders
+    if (data.hasInactiveFunders === 'yes' && data.inactiveFunders && data.inactiveFunders.length > 0) {
+      document.querySelector('input[name="hasInactive"][value="yes"]').checked = true;
+      toggleInactiveSection(true);
+      // Clear auto-added card and repopulate
+      document.getElementById('inactiveFundingCards').innerHTML = '';
+      inactiveCount = 0;
+      data.inactiveFunders.forEach(inactive => {
+        addInactiveFunder();
+        const cards = document.querySelectorAll('#inactiveFundingCards .fs-card');
+        const card = cards[cards.length - 1];
+        const nameEl = card.querySelector('input[type="text"]');
+        const notesEl = card.querySelector('textarea');
+        if (nameEl) nameEl.value = inactive.name || '';
+        if (notesEl) notesEl.value = inactive.notes || '';
+      });
+    } else if (data.hasInactiveFunders === 'no') {
+      document.querySelector('input[name="hasInactive"][value="no"]').checked = true;
+    }
   }
 
   // Run prefill on page load

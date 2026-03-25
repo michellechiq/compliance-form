@@ -4,22 +4,27 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Program Compliance Survey</title>
-<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --blue: #1f6eb5; --blue-light: #e8f1fb; --blue-btn: #0b5ed7;
+    --blue: #2da7df; --blue-light: #e6f5fc; --blue-btn: #2da7df;
+    --red: #bd202f; --green: #3d823e; --yellow: #faa61a; --purple: #522e91;
     --gray-border: #c8c8c8; --gray-bg: #f4f4f4; --gray-input: #f9f9f9;
-    --text: #2c2c2c; --required: #c0392b;
+    --text: #2c2c2c; --required: #bd202f;
   }
-  body { font-family: 'Source Sans 3', sans-serif; background: #ebebeb; color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 16px 80px; }
+  body { font-family: 'Montserrat', sans-serif; background: #eef0f3; color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 40px 16px 80px; }
   .survey-wrapper { width: 100%; max-width: 960px; }
-  .survey-header { background: var(--blue); color: white; padding: 18px 32px; font-size: 1rem; font-weight: 600; letter-spacing: 0.02em; border-radius: 4px 4px 0 0; }
-  .progress-bar-wrap { background: #d0d0d0; height: 6px; }
-  .progress-bar { height: 100%; background: var(--blue); transition: width 0.4s ease; }
+  .survey-header { background: var(--red); color: white; padding: 0 32px; font-size: 1rem; font-weight: 700; letter-spacing: 0.02em; border-radius: 4px 4px 0 0; display: flex; align-items: center; justify-content: space-between; min-height: 64px; }
+  .survey-header-title { display: flex; flex-direction: column; gap: 2px; }
+  .survey-header-title .main-title { font-size: 1rem; font-weight: 700; letter-spacing: 0.02em; }
+  .survey-header-title .sub-title { font-size: 0.75rem; font-weight: 400; opacity: 0.85; letter-spacing: 0.04em; }
+  .survey-header-logo { height: 40px; width: auto; object-fit: contain; filter: brightness(0) invert(1); }
+  .progress-bar-wrap { background: #ddd; height: 5px; }
+  .progress-bar { height: 100%; background: var(--yellow); transition: width 0.4s ease; }
   .page { display: none; background: white; padding: 40px 48px 32px; border: 1px solid #ccc; }
   .page.active { display: block; }
-  .page-label { font-size: 0.75rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 28px; }
+  .page-label { font-size: 0.75rem; font-weight: 600; color: var(--red); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 28px; }
   .q-block { margin-bottom: 30px; }
   .q-label { font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: 10px; display: flex; align-items: baseline; gap: 4px; }
   .q-label .req { color: var(--required); }
@@ -48,15 +53,15 @@
   /* Funder tabs on page 2 */
   .funder-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--blue-light); margin-bottom: 24px; flex-wrap: wrap; }
   .funder-tab { padding: 9px 20px; font-size: 0.85rem; font-weight: 600; color: #888; cursor: pointer; border: 1px solid transparent; border-bottom: none; border-radius: 4px 4px 0 0; transition: all 0.15s; user-select: none; }
-  .funder-tab:hover { color: var(--blue); background: var(--blue-light); }
-  .funder-tab.active { color: var(--blue); background: white; border-color: var(--blue-light); border-bottom: 2px solid white; margin-bottom: -2px; }
+  .funder-tab:hover { color: var(--red); background: #fdf0f1; }
+  .funder-tab.active { color: var(--red); background: white; border-color: #f0c0c3; border-bottom: 2px solid white; margin-bottom: -2px; }
 
   .funder-section { display: none; }
   .funder-section.active { display: block; }
 
   /* Table */
   .side-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-  .side-table th { background: var(--blue-light); color: var(--blue); font-weight: 700; padding: 10px; text-align: left; border: 1px solid #c5d8f0; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+  .side-table th { background: var(--blue-light); color: #1a7aaa; font-weight: 700; padding: 10px; text-align: left; border: 1px solid #c5d8f0; font-size: 0.76rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
   .side-table td { border: 1px solid var(--gray-border); padding: 7px 8px; vertical-align: middle; }
   .side-table tr:nth-child(even) td { background: #fafafa; }
   .side-table input[type="text"], .side-table select, .side-table textarea { border: 1px solid #ddd; border-radius: 2px; padding: 6px 8px; font-size: 0.88rem; }
@@ -77,7 +82,7 @@
   .notes-th { transition: all 0.35s ease; width: 0; padding: 0 !important; overflow: hidden; border-left: none !important; font-size: 0; }
   .notes-th.visible { width: 220px; padding: 10px !important; border-left: 1px solid #c5d8f0 !important; font-size: 0.76rem; }
 
-  .section-title { font-size: 1.05rem; font-weight: 700; color: var(--blue); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .section-title { font-size: 1.05rem; font-weight: 700; color: var(--red); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
   .section-title::after { content: ''; flex: 1; height: 2px; background: var(--blue-light); border-radius: 1px; }
   .info-note { font-size: 0.8rem; color: #777; background: #f7f7f7; border-left: 3px solid var(--blue); padding: 8px 12px; border-radius: 2px; margin-bottom: 20px; }
   .piped-val { color: var(--blue); font-weight: 700; }
@@ -91,9 +96,9 @@
   .new-row { animation: rowSlide 0.25s ease; }
   .nav-bar { background: white; border: 1px solid #ccc; border-top: none; padding: 18px 48px; display: flex; justify-content: flex-end; gap: 12px; }
   .btn { font-family: inherit; font-size: 0.9rem; font-weight: 600; padding: 10px 28px; border-radius: 4px; border: none; cursor: pointer; transition: background 0.15s; }
-  .btn-primary { background: var(--blue-btn); color: white; }
-  .btn-primary:hover { background: #0a52b8; }
-  .btn-secondary { background: white; color: var(--blue-btn); border: 1.5px solid var(--blue-btn); }
+  .btn-primary { background: var(--red); color: white; }
+  .btn-primary:hover { background: #a01828; }
+  .btn-secondary { background: white; color: var(--red); border: 1.5px solid var(--red); }
   .btn-secondary:hover { background: var(--blue-light); }
 
   /* Validation */
@@ -106,7 +111,13 @@
 </head>
 <body>
 <div class="survey-wrapper">
-  <div class="survey-header">Program Compliance &amp; Deliverables Report</div>
+  <div class="survey-header">
+    <div class="survey-header-title">
+      <span class="main-title">Program Compliance &amp; Deliverables Report</span>
+      <span class="sub-title">Goddard Riverside Community Center</span>
+    </div>
+    <img src="logo.png" alt="Goddard Riverside" class="survey-header-logo" onerror="this.style.display='none'">
+  </div>
   <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar" style="width:33%"></div></div>
 
   <!-- PAGE 1 -->
@@ -983,14 +994,21 @@
     if (data.avpFirstName) document.getElementById('avpFirst').value = data.avpFirstName;
     if (data.avpLastName) document.getElementById('avpLast').value = data.avpLastName;
 
-    // Reporting period -- advance quarter by 1
-    const quarterMap = { Q1: 'Q2', Q2: 'Q3', Q3: 'Q4', Q4: 'Q1' };
-    const nextQuarter = quarterMap[data.reportingQuarter] || data.reportingQuarter;
-    const nextYear = data.reportingQuarter === 'Q4' ? String(parseInt(data.reportingYear) + 1) : data.reportingYear;
+    // Reporting period -- advance quarter by 1 only for new quarter prefill, not resubmissions
     const quarterEl = document.getElementById('reportingQuarter');
-    [...quarterEl.options].forEach(o => { if (o.value === nextQuarter) o.selected = true; });
     const yearEl = document.getElementById('reportingYear');
-    [...yearEl.options].forEach(o => { if (o.value === nextYear) o.selected = true; });
+    if (data.resubmissionOf) {
+      // Resubmission -- keep the same quarter and year as the rejected submission
+      [...quarterEl.options].forEach(o => { if (o.value === data.reportingQuarter) o.selected = true; });
+      [...yearEl.options].forEach(o => { if (o.value === data.reportingYear) o.selected = true; });
+    } else {
+      // New quarter prefill -- advance by one
+      const quarterMap = { Q1: 'Q2', Q2: 'Q3', Q3: 'Q4', Q4: 'Q1' };
+      const nextQuarter = quarterMap[data.reportingQuarter] || data.reportingQuarter;
+      const nextYear = data.reportingQuarter === 'Q4' ? String(parseInt(data.reportingYear) + 1) : data.reportingYear;
+      [...quarterEl.options].forEach(o => { if (o.value === nextQuarter) o.selected = true; });
+      [...yearEl.options].forEach(o => { if (o.value === nextYear) o.selected = true; });
+    }
 
     // Funding sources
     if (data.activeFunderCount && data.funders) {
@@ -1017,7 +1035,12 @@
     // Show prefill banner
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#e8f4fd; border:1px solid #b0d4f0; border-radius:4px; padding:10px 16px; font-size:0.85rem; color:#1a5a8a; margin-bottom:20px;';
-        banner.textContent = "This form has been pre-filled with last quarters submission. Review and update as needed before submitting.";
+        banner.textContent = data.resubmissionOf
+      ? "This form has been pre-filled with your rejected submission. Please address the reviewer comments and resubmit."
+      : "This form has been pre-filled with last quarters submission. Review and update as needed before submitting.";
+    banner.style.background = data.resubmissionOf ? '#fdf0f0' : '#e8f4fd';
+    banner.style.borderColor = data.resubmissionOf ? '#e0b0b0' : '#b0d4f0';
+    banner.style.color = data.resubmissionOf ? '#a93226' : '#1a5a8a';
     document.getElementById('page1').insertBefore(banner, document.getElementById('page1').children[1]);
   }
 

@@ -281,7 +281,7 @@
     const moreWrap = document.getElementById('moreCountWrap');
     if (val === 'more') {
       moreWrap.classList.add('visible');
-      document.getElementById('fundingSourceFields').innerHTML = '';
+      // Don't clear -- keep existing fields visible while user types the count
     } else {
       moreWrap.classList.remove('visible');
       document.getElementById('moreFundingCount').value = '';

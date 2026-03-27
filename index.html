@@ -997,21 +997,12 @@
     // Reporting period -- advance quarter by 1 only for new quarter prefill, not resubmissions
     const quarterEl = document.getElementById('reportingQuarter');
     const yearEl = document.getElementById('reportingYear');
-    if (data.resubmissionOf) {
-      // Resubmission -- keep the same quarter and year and lock the fields
+    const isResubmission = !!params.get('resubmissionOf');
+
+    if (isResubmission) {
+      // Resubmission -- keep same quarter and year
       [...quarterEl.options].forEach(o => { if (o.value === data.reportingQuarter) o.selected = true; });
       [...yearEl.options].forEach(o => { if (o.value === data.reportingYear) o.selected = true; });
-      quarterEl.disabled = true;
-      yearEl.disabled = true;
-      quarterEl.style.opacity = '0.6';
-      yearEl.style.opacity = '0.6';
-      quarterEl.title = 'Reporting period is locked for resubmissions';
-      yearEl.title = 'Reporting period is locked for resubmissions';
-      // Add a small lock note below the fields
-      const lockNote = document.createElement('div');
-      lockNote.style.cssText = 'font-size:0.75rem; color:#888; margin-top:6px; font-style:italic;';
-      lockNote.textContent = 'Reporting period is locked because this is a resubmission.';
-      yearEl.closest('.quarter-row').parentNode.appendChild(lockNote);
     } else {
       // New quarter prefill -- advance by one
       const quarterMap = { Q1: 'Q2', Q2: 'Q3', Q3: 'Q4', Q4: 'Q1' };
@@ -1020,6 +1011,20 @@
       [...quarterEl.options].forEach(o => { if (o.value === nextQuarter) o.selected = true; });
       [...yearEl.options].forEach(o => { if (o.value === nextYear) o.selected = true; });
     }
+
+    // Lock quarter and year on ALL prefill links
+    quarterEl.disabled = true;
+    yearEl.disabled = true;
+    quarterEl.style.opacity = '0.6';
+    yearEl.style.opacity = '0.6';
+    quarterEl.title = 'Reporting period is pre-set and cannot be changed';
+    yearEl.title = 'Reporting period is pre-set and cannot be changed';
+    const lockNote = document.createElement('div');
+    lockNote.style.cssText = 'font-size:0.75rem; color:#888; margin-top:6px; font-style:italic;';
+    lockNote.textContent = isResubmission
+      ? 'Reporting period is locked because this is a resubmission.'
+      : 'Reporting period has been set for this quarter and cannot be changed.';
+    yearEl.closest('.quarter-row').parentNode.appendChild(lockNote);
 
     // Funding sources
     if (data.activeFunderCount && data.funders) {
@@ -1046,12 +1051,12 @@
     // Show prefill banner
     const banner = document.createElement('div');
     banner.style.cssText = 'background:#e8f4fd; border:1px solid #b0d4f0; border-radius:4px; padding:10px 16px; font-size:0.85rem; color:#1a5a8a; margin-bottom:20px;';
-        banner.textContent = data.resubmissionOf
+        banner.textContent = isResubmission
       ? "This form has been pre-filled with your rejected submission. Please address the reviewer comments and resubmit."
       : "This form has been pre-filled with last quarters submission. Review and update as needed before submitting.";
-    banner.style.background = data.resubmissionOf ? '#fdf0f0' : '#e8f4fd';
-    banner.style.borderColor = data.resubmissionOf ? '#e0b0b0' : '#b0d4f0';
-    banner.style.color = data.resubmissionOf ? '#a93226' : '#1a5a8a';
+    banner.style.background = isResubmission ? '#fdf0f0' : '#e8f4fd';
+    banner.style.borderColor = isResubmission ? '#e0b0b0' : '#b0d4f0';
+    banner.style.color = isResubmission ? '#a93226' : '#1a5a8a';
     document.getElementById('page1').insertBefore(banner, document.getElementById('page1').children[1]);
   }
 

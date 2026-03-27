@@ -127,7 +127,7 @@
 
     <div class="q-block">
       <div class="q-label"><span class="req">*</span> Program Name</div>
-      <select id="programSelect">
+      <select id="programSelect" onchange="handleProgramChange(this.value)">
         <option value="">-- Select a program --</option>
         <option>ACT Team</option>
         <option>Baxter Safe Haven</option>
@@ -286,6 +286,64 @@
   let rowCounts = {};
   let prefillData = null; // stores prefill data for use after page 2 builds
 
+  // ── AVP Lookup Table ────────────────────────────────────────────────────────
+  const avpLookup = {
+    'ACT Team': { first: 'Shelly', last: 'Brenner' },
+    'Baxter Safe Haven': { first: 'Jennie', last: 'Drossman' },
+    'Beacon 1 - School Year Prg (Afterschool/Evening/Saturday) PS198': { first: 'Karenne', last: 'Berry' },
+    'Beacon 3 - School Year Prg (Afterschool/Evening/Saturday) - Upper West Side': { first: 'Karenne', last: 'Berry' },
+    'Beacon 3 - Summer Camp - Upper West Side': { first: 'Karenne', last: 'Berry' },
+    'Capitol Hall': { first: 'Michelle', last: 'Sanderson' },
+    'COFA': { first: 'Karenne', last: 'Berry' },
+    'Community Arts': { first: 'Beth', last: 'Dunphe' },
+    'Corner House': { first: 'Michelle', last: 'Sanderson' },
+    'EDW - Advance and Earn - GED Program': { first: 'Chad', last: 'Franklin' },
+    'EDW - Advance and Earn CNA': { first: 'Chad', last: 'Franklin' },
+    'EDW - Advance and Earn Culinary Arts Program': { first: 'Chad', last: 'Franklin' },
+    'Food and Nutrition Department East and West': { first: '', last: '' },
+    'Goddard Riverside at Isaacs Center NORC': { first: 'Khristel', last: 'Simmons' },
+    'Goddard Riverside at Isaacs Older Adult Center': { first: 'Khristel', last: 'Simmons' },
+    'Goddard Riverside W 88th Older Adult Center': { first: '', last: '' },
+    'Hillside Sanctuary': { first: 'Jennie', last: 'Drossman' },
+    'Homeless Outreach - Downtown': { first: 'Jennie', last: 'Drossman' },
+    'Homeless Outreach - Uptown': { first: 'Jennie', last: 'Drossman' },
+    'Intensive Mobile Treatment Team (IMT)': { first: 'Shelly', last: 'Brenner' },
+    'Jack August Afterschool': { first: 'Karenne', last: 'Berry' },
+    'Law Project': { first: 'Shelly', last: 'Brenner' },
+    'Learning to Work (LTW)': { first: 'Chad', last: 'Franklin' },
+    'Lincoln Square - TEP - Teen Expansion Program (Summer)': { first: 'Chad', last: 'Franklin' },
+    'Lincoln Square Afterschool': { first: 'Chad', last: 'Franklin' },
+    'Lincoln Square NORC': { first: 'Khristel', last: 'Simmons' },
+    'Lincoln Square Summer Camp': { first: 'Chad', last: 'Franklin' },
+    'Manhattanville Resource Center': { first: 'Shelly', last: 'Brenner' },
+    'Monument Sanctuary': { first: 'Jennie', last: 'Drossman' },
+    'Older Adult Center Lincoln Square': { first: 'Khristel', last: 'Simmons' },
+    'Older Adult NORC Program at Taft/Johnson': { first: 'Khristel', last: 'Simmons' },
+    'Options Center': { first: 'Chad', last: 'Franklin' },
+    'Phelps House Social Services Department': { first: 'Khristel', last: 'Simmons' },
+    'Resource Center at 140th Street': { first: 'Shelly', last: 'Brenner' },
+    'Restgate Sanctuary': { first: 'Jennie', last: 'Drossman' },
+    'Star Learning Center': { first: 'Chad', last: 'Franklin' },
+    'Stephan Russo Residence': { first: 'Michelle', last: 'Sanderson' },
+    'The Senate': { first: 'Michelle', last: 'Sanderson' },
+    'TOP Clubhouse': { first: 'Shelly', last: 'Brenner' },
+    'TOP Opportunities/Green Keepers': { first: 'Shelly', last: 'Brenner' },
+    'West 140th Street': { first: 'Michelle', last: 'Sanderson' },
+    'West Side NORC': { first: 'Khristel', last: 'Simmons' },
+    'Young Adult ACT Team': { first: 'Shelly', last: 'Brenner' }
+  };
+
+  function handleProgramChange(val) {
+    const avp = avpLookup[val];
+    if (avp) {
+      document.getElementById('avpFirst').value = avp.first;
+      document.getElementById('avpLast').value = avp.last;
+    } else {
+      document.getElementById('avpFirst').value = '';
+      document.getElementById('avpLast').value = '';
+    }
+  }
+
   // ── Funding count handling ──────────────────────────────────────────────────
 
   function handleFundingCountChange(val) {
@@ -372,12 +430,20 @@
       tab.onclick = () => switchTab(i);
       tabsEl.appendChild(tab);
 
+      // Get blurb from Page 1 if filled in
+      const blurbEl = document.getElementById('fundingBlurb' + i);
+      const blurb = blurbEl ? blurbEl.value.trim() : '';
+      const blurbHTML = blurb
+        ? `<div style="font-size:0.83rem; color:#666; font-style:italic; margin-bottom:14px; padding:8px 12px; background:#f7f7f7; border-left:3px solid var(--blue); border-radius:2px;">${blurb}</div>`
+        : '';
+
       // Section
       const section = document.createElement('div');
       section.className = 'funder-section' + (idx === 0 ? ' active' : '');
       section.id = 'funderSection' + i;
       section.innerHTML = `
         <div class="section-title">${name}</div>
+        ${blurbHTML}
         <table class="side-table" id="delivTable${i}">
           <thead>
             <tr>

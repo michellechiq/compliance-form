@@ -107,6 +107,13 @@
   .error-msg::before { content: '!'; display: inline-flex; align-items: center; justify-content: center; width: 13px; height: 13px; background: #c0392b; color: white; border-radius: 50%; font-size: 0.62rem; font-weight: 900; flex-shrink: 0; }
   .validation-banner { background: #fdf0f0; border: 1px solid #e0b0b0; border-radius: 4px; padding: 10px 16px; font-size: 0.85rem; color: #a93226; margin-bottom: 20px; display: none; }
   .validation-banner.visible { display: block; }
+
+  /* Program metrics sections */
+  .metrics-section { margin-top: 36px; padding-top: 28px; border-top: 2px solid var(--blue-light); }
+  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 600px) { .metrics-grid { grid-template-columns: 1fr; } }
+  .metric-field label { display: block; font-size: 0.78rem; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .metric-field label .req { color: var(--required); }
 </style>
 </head>
 <body>
@@ -234,6 +241,50 @@
 
     <div id="fundingSourceFields"></div>
 
+    <!-- STAFFING SECTION -->
+    <div class="metrics-section">
+      <div class="section-title">Staffing</div>
+      <div class="metrics-grid">
+        <div class="metric-field"><label><span class="req">*</span> # Full-Time Staff</label><input type="number" id="staffFT" min="0" placeholder="0"></div>
+        <div class="metric-field"><label><span class="req">*</span> # Part-Time Staff</label><input type="number" id="staffPT" min="0" placeholder="0"></div>
+        <div class="metric-field"><label><span class="req">*</span> # Per Diem Staff</label><input type="number" id="staffPerDiem" min="0" placeholder="0"></div>
+        <div class="metric-field"><label><span class="req">*</span> # Consultants</label><input type="number" id="staffConsultants" min="0" placeholder="0"></div>
+        <div class="metric-field"><label><span class="req">*</span> # Vacancies</label><input type="number" id="staffVacancies" min="0" placeholder="0"></div>
+        <div class="metric-field"><label><span class="req">*</span> # New Hires</label><input type="number" id="staffNewHires" min="0" placeholder="0"></div>
+        <div class="metric-field"><label><span class="req">*</span> # Mandatory Trainings / Prof. Development (Funding Source(s))</label><input type="number" id="mandatoryTrainingsFunder" min="0" placeholder="0"></div>
+        <div class="metric-field"><label><span class="req">*</span> # Mandatory Trainings / Prof. Development (GRCC)</label><input type="number" id="mandatoryTrainingsGRCC" min="0" placeholder="0"></div>
+      </div>
+    </div>
+
+    <!-- PARTICIPANTS SERVED SECTION -->
+    <div class="metrics-section">
+      <div class="section-title">Participants Served</div>
+      <div class="metrics-grid">
+        <div class="metric-field"><label><span class="req">*</span> Unduplicated Count of Participants Served</label><input type="number" id="participantsUnduplicated" min="0" placeholder="0"></div>
+        <div class="metric-field"><label><span class="req">*</span> # Move Outs / Transfers / Unenrolled / New Admissions</label><input type="number" id="moveOutsTransfers" min="0" placeholder="0"></div>
+        <div class="metric-field"><label><span class="req">*</span> # Voters Registered</label><input type="number" id="votersRegistration" min="0" placeholder="0"></div>
+        <div class="metric-field"><label><span class="req">*</span> # Internal &amp; External Referrals</label><input type="number" id="internalExternalReferrals" min="0" placeholder="0"></div>
+      </div>
+    </div>
+
+    <!-- COMPLIANCE REVIEW SECTION -->
+    <div class="metrics-section">
+      <div class="section-title">Compliance Review / Program Monitoring</div>
+      <div class="metrics-grid">
+        <div class="metric-field"><label><span class="req">*</span> # Internal Audits</label><input type="number" id="internalAudits" min="0" placeholder="0"></div>
+        <div class="metric-field"><label><span class="req">*</span> # External Audits</label><input type="number" id="externalAudits" min="0" placeholder="0"></div>
+        <div class="metric-field" style="grid-column: 1 / -1;"><label><span class="req">*</span> Was PII / Compliance notified of External Audit / Corrective Actions?</label>
+          <select id="piiNotified" style="max-width:200px;">
+            <option value="">-- Select --</option>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+            <option value="N/A">N/A</option>
+          </select>
+        </div>
+        <div class="metric-field"><label># Active Correction Plans</label><input type="number" id="activeCorrectionPlans" min="0" placeholder="0"></div>
+        <div class="metric-field"><label><span class="req">*</span> # Critical Incidents that may disrupt a deliverable</label><input type="number" id="criticalIncidents" min="0" placeholder="0"></div>
+      </div>
+    </div>
 
   </div>
 
@@ -612,6 +663,15 @@
       if (fsEl && !fsEl.value.trim()) { markError(fsEl, 'Please enter a name for this funding source.'); valid = false; }
     }
 
+    // Validate new required metrics fields
+    const requiredMetrics = ['staffFT','staffPT','staffPerDiem','staffConsultants','staffVacancies','staffNewHires','mandatoryTrainingsFunder','mandatoryTrainingsGRCC','participantsUnduplicated','moveOutsTransfers','votersRegistration','internalExternalReferrals','internalAudits','externalAudits','criticalIncidents'];
+    requiredMetrics.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value === '') { markError(el, 'Required.'); valid = false; }
+    });
+    const piiEl = document.getElementById('piiNotified');
+    if (piiEl && !piiEl.value) { markError(piiEl, 'Please select an option.'); valid = false; }
+
     document.getElementById('validationBanner1').classList.toggle('visible', !valid);
     return valid;
   }
@@ -791,7 +851,24 @@
       funders,
       hasInactiveFunders: hasInactive,
       inactiveFunders,
-      resubmissionOf: (prefillData && prefillData.resubmissionOf) ? prefillData.resubmissionOf : ''
+      resubmissionOf: (prefillData && prefillData.resubmissionOf) ? prefillData.resubmissionOf : '',
+      staffFT: document.getElementById('staffFT').value || '0',
+      staffPT: document.getElementById('staffPT').value || '0',
+      staffPerDiem: document.getElementById('staffPerDiem').value || '0',
+      staffConsultants: document.getElementById('staffConsultants').value || '0',
+      staffVacancies: document.getElementById('staffVacancies').value || '0',
+      staffNewHires: document.getElementById('staffNewHires').value || '0',
+      mandatoryTrainingsFunder: document.getElementById('mandatoryTrainingsFunder').value || '0',
+      mandatoryTrainingsGRCC: document.getElementById('mandatoryTrainingsGRCC').value || '0',
+      participantsUnduplicated: document.getElementById('participantsUnduplicated').value || '0',
+      moveOutsTransfers: document.getElementById('moveOutsTransfers').value || '0',
+      votersRegistration: document.getElementById('votersRegistration').value || '0',
+      internalExternalReferrals: document.getElementById('internalExternalReferrals').value || '0',
+      internalAudits: document.getElementById('internalAudits').value || '0',
+      externalAudits: document.getElementById('externalAudits').value || '0',
+      piiNotified: document.getElementById('piiNotified').value || '',
+      activeCorrectionPlans: document.getElementById('activeCorrectionPlans').value || '0',
+      criticalIncidents: document.getElementById('criticalIncidents').value || '0'
     };
 
     const POWER_AUTOMATE_URL = 'https://default7823eb282d20427bad9c66fae6b7b9.df.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/905da24a175d446aaac3010417b77a35/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=1ImBpXcbrGi2MsOQ-6ZVre9-YtroZuDAo2mGnLdBoXM';
@@ -1020,6 +1097,51 @@
       }
     }
     html += `</div>`;
+
+    // ── Staffing ───────────────────────────────────────────────────────────
+    const v = id => (document.getElementById(id) || {}).value || '0';
+    html += `
+      <div style="margin-bottom:28px;">
+        <div class="section-title">Staffing</div>
+        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; width:55%; background:#fafafa;"># Full-Time Staff</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('staffFT')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># Part-Time Staff</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('staffPT')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># Per Diem Staff</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('staffPerDiem')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># Consultants</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('staffConsultants')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># Vacancies</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('staffVacancies')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># New Hires</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('staffNewHires')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># Mandatory Trainings / Prof. Development (Funding Source(s))</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('mandatoryTrainingsFunder')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># Mandatory Trainings / Prof. Development (GRCC)</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('mandatoryTrainingsGRCC')}</td></tr>
+        </table>
+      </div>
+    `;
+
+    // ── Participants Served ────────────────────────────────────────────────
+    html += `
+      <div style="margin-bottom:28px;">
+        <div class="section-title">Participants Served</div>
+        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; width:55%; background:#fafafa;">Unduplicated Count of Participants Served</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('participantsUnduplicated')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># Move Outs / Transfers / Unenrolled / New Admissions</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('moveOutsTransfers')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># Voters Registered</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('votersRegistration')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># Internal &amp; External Referrals</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('internalExternalReferrals')}</td></tr>
+        </table>
+      </div>
+    `;
+
+    // ── Compliance Review ──────────────────────────────────────────────────
+    html += `
+      <div style="margin-bottom:28px;">
+        <div class="section-title">Compliance Review / Program Monitoring</div>
+        <table style="width:100%; border-collapse:collapse; font-size:0.9rem;">
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; width:55%; background:#fafafa;"># Internal Audits</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('internalAudits')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># External Audits</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('externalAudits')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;">PII / Compliance Notified of External Audit / Corrective Actions?</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${(document.getElementById('piiNotified') || {}).value || '—'}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># Active Correction Plans</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('activeCorrectionPlans')}</td></tr>
+          <tr><td style="padding:7px 10px; border:1px solid #e0e0e0; font-weight:600; background:#fafafa;"># Critical Incidents that may disrupt a deliverable</td><td style="padding:7px 10px; border:1px solid #e0e0e0;">${v('criticalIncidents')}</td></tr>
+        </table>
+      </div>
+    `;
 
     document.getElementById('summaryContent').innerHTML = html;
   }
